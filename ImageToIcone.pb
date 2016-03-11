@@ -144,7 +144,7 @@ Procedure ImageZoom()
     Case #ZoomOut : Zoom - 1       
   EndSelect
   ImageEdit = CopyImage(ImageSelect, #PB_Any)
-  ResizeImage(ImageEdit, ImageWidth(ImageEdit) + Zoom, ImageHeight(ImageEdit) + Zoom)
+  ResizeImage(ImageEdit, ImageWidth(ImageEdit) + Zoom, ImageHeight(ImageEdit) + Zoom, #PB_Image_Smooth)
   IconeUpdate()
 EndProcedure
 
@@ -190,6 +190,9 @@ Procedure IconeSave()
   Protected ImageName.s = StringField(GetFilePart(FileName), 1, ".") + ".ico"
   
   StartDrawing(ImageOutput(Image))
+  DrawingMode(#PB_2DDrawing_AllChannels)
+  Box(0, 0, GadgetWidth(#Icone), GadgetHeight(#Icone), RGBA(255, 255, 255, 0))
+  DrawingMode(#PB_2DDrawing_AlphaBlend)
   DrawImage(ImgId, 0, 0, Width, Height)
   StopDrawing()
   
@@ -222,7 +225,8 @@ DataSection
     
 EndDataSection
 ; IDE Options = PureBasic 5.42 LTS (Windows - x86)
-; CursorPosition = 190
+; CursorPosition = 183
+; FirstLine = 170
 ; Folding = --
 ; EnableUnicode
 ; EnableXP
