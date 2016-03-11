@@ -1,5 +1,5 @@
 # ImageToIcone
-Transformer une image (PNG ou JPG) en icone.
+Codé en avec le langage PureBasic, ImageToIcone transforme une image (PNG ou JPG) en icone.
 
 ■ Le principe.
 - Chargée une image.
