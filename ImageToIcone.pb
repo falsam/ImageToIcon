@@ -39,6 +39,7 @@ EndEnumeration
 Global FileName.s, ImageSelect.i, ImageEdit.i, ImageIcone.i, IconeHandle.i, Zoom.i = 0
 
 Declare Start()
+Declare.f AjustFontSize(lPolice.l)
 Declare ImageSelect()
 Declare IconeCreate()
 Declare IconeUpdate()
@@ -53,7 +54,7 @@ Procedure Start()
   
   UseModule Notify
   
-  LoadFont(#FontGlobal, "", 9)
+  LoadFont(#FontGlobal, "Arial", AjustFontSize(9))
   SetGadgetFont(#PB_Default, FontID(#FontGlobal))
   
   UsePNGImageDecoder()
@@ -118,8 +119,13 @@ Procedure Start()
   Repeat : WaitWindowEvent() : ForEver
 EndProcedure
 
+Procedure.f AjustFontSize(Size.l)
+  Define lPpp.l = GetDeviceCaps_(GetDC_(#Null), #LOGPIXELSX)
+  ProcedureReturn (Size * 96) / lPpp
+EndProcedure
+
 Procedure ImageSelect()
-  Protected Pattern.s  = "Image (*.png)|*.png|Image (*.jpg)|*.jpg"
+  Protected Pattern.s  = "Image (*.bmp)|*.bmp|Image (*.png)|*.png|Image (*.jpg)|*.jpg"
 
   FileName.s = OpenFileRequester("Load Image ...", "", Pattern, 0)
   
@@ -238,8 +244,8 @@ DataSection
       
 EndDataSection
 ; IDE Options = PureBasic 5.42 LTS (Windows - x86)
-; CursorPosition = 198
-; FirstLine = 167
+; CursorPosition = 127
+; FirstLine = 126
 ; Folding = --
 ; EnableUnicode
 ; EnableXP
