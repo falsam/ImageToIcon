@@ -1,6 +1,6 @@
 ﻿;By Srod, RASHAD & Bisonte
 
-Procedure PngToIco(Image) ; Convert an image to an ico. Returns the icon handle. To free it use : DestroyIcon_(icoHnd)
+Procedure ImageToIco(Image) ; Convert an image to an ico. Returns the icon handle. To free it use : DestroyIcon_(icoHnd)
   
   If Not IsImage(Image) : ProcedureReturn #False : EndIf
   
@@ -182,8 +182,7 @@ Procedure.i SaveIcon(hIcon, filename$)
 EndProcedure
 
 ; IDE Options = PureBasic 5.42 LTS (Windows - x86)
-; CursorPosition = 56
-; FirstLine = 53
+; CursorPosition = 2
 ; Folding = -
 ; EnableUnicode
 ; EnableXP
