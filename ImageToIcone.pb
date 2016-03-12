@@ -15,9 +15,8 @@ EndEnumeration
 
 Enumeration Gadget  
   #ImageOpen
+  #IconePreview
   #IconeSave
-  #ZoomIn
-  #ZoomOut
   
   #Size16
   #Size20
@@ -37,13 +36,13 @@ Enumeration Gadget
   
 EndEnumeration
 
-Global FileName.s, ImageSelect.i, ImageEdit.i, IconeHandle, Zoom.i = 0
+Global FileName.s, ImageSelect.i, ImageEdit.i, ImageIcone.i, IconeHandle.i, Zoom.i = 0
 
 Declare Start()
 Declare ImageSelect()
-Declare ImageZoom()
 Declare IconeCreate()
 Declare IconeUpdate()
+Declare IconePreview()
 Declare IconeSave()
 Declare Exit()
 
@@ -60,19 +59,24 @@ Procedure Start()
   UsePNGImageDecoder()
   UseJPEGImageDecoder()
   
-  OpenWindow(#MainForm, 0, 0, 470, 500, "Image2Icone", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
+  OpenWindow(#MainForm, 0, 0, 470, 500, "ImageToIcone", #PB_Window_SystemMenu | #PB_Window_ScreenCentered)
   
-  ;Toolbar
+  ;-Toolbar
   Image = CatchImage(#PB_Any, ?ImageSelect)
   ButtonImageGadgetNoSkin(#ImageOpen, 10, 20, 32, 32, ImageID(Image))
-  GadgetToolTip(#ImageOpen, "Load image")
+  GadgetToolTip(#ImageOpen, "Load image (PNG or JPEG)")
+  
+  Image = CatchImage(#PB_Any, ?IconePreview)
+  ButtonImageGadgetNoSkin(#IconePreview, 50, 20, 32, 32, ImageID(Image))
+  GadgetToolTip(#IconePreview, "View the result in the title of this window.")  
+  DisableGadget(#IconePreview, #True)
   
   Image = CatchImage(#PB_Any, ?IconeSave)
-  ButtonImageGadgetNoSkin(#IconeSave, 50, 20, 32, 32, ImageID(Image))
+  ButtonImageGadgetNoSkin(#IconeSave, 90, 20, 32, 32, ImageID(Image))
   GadgetToolTip(#IconeSave, "Create icone (ICO)")  
   DisableGadget(#IconeSave, #True)
   
-  ;Size
+  ;-Icone Size
   FrameGadget(#PB_Any, 10, 60, 450, 100, "Size in Pixel")
   OptionGadget(#Size16,  20, 80, 70, 20, "16 x 16")
   OptionGadget(#Size20, 110, 80, 70, 20, "20 x 20")
@@ -87,23 +91,14 @@ Procedure Start()
   OptionGadget(#Size256, 380, 105, 70, 20, "256 x 256")
   
   SetGadgetState(#Size48, #True) ;Default : Size 48
-  
-  ;Left SideBar
-  Image = CatchImage(#PB_Any, ?IconeZoomIn)
-  ButtonImageGadgetNoSkin(#ZoomIn, 10, 175, 32, 32, ImageID(Image))
-  GadgetToolTip(#ZoomIn, "Zomm +")
-  
-  Image = CatchImage(#PB_Any, ?IconeZoomOut)
-  ButtonImageGadgetNoSkin(#ZoomOut, 10, 215, 32, 32, ImageID(Image))
-  GadgetToolTip(#ZoomOut, "Zomm -")
-    
+      
   ;Preview
-  FrameGadget(#PB_Any, 45, 170, 415, 300, "Preview")
+  FrameGadget(#PB_Any, 10, 170, 450, 300, "Preview")
   
   ;FileName
-  TextGadget(#FileName, 45, 475, 300, 22, "")
+  TextGadget(#FileName, 10, 475, 300, 22, "")
   
-  ;Trigger
+  ;-Trigger
   BindEvent(#PB_Event_CloseWindow, @Exit())
   
   For Gadget = #Size16 To #Size256
@@ -111,15 +106,15 @@ Procedure Start()
   Next
   
   BindGadgetEvent(#ImageOpen, @ImageSelect(), #PB_EventType_LeftClick)
+  BindGadgetEvent(#IconePreview, @IconePreview(), #PB_EventType_LeftClick)  
   BindGadgetEvent(#IconeSave, @IconeSave(), #PB_EventType_LeftClick)
-  
-  BindGadgetEvent(#ZoomIn, @ImageZoom(), #PB_EventType_LeftClick)
-  BindGadgetEvent(#ZoomOut, @ImageZoom(), #PB_EventType_LeftClick)
     
   PostEvent(#PB_Event_Gadget, #MainForm, #Size48, #PB_EventType_LeftClick)
   
-  Notify(#MainForm, "Information", "Chargez une image pour commencer.", #NIM_ADD)
-  
+  ;-Notify
+  Notify(#MainForm, "Information", "Chargez une image pour commencer." + #CRLF$ + #CRLF$ +
+                                   "L'image doit avoir une des tailles défini dans cet utilitaire." ,#NIM_ADD)
+ 
   Repeat : WaitWindowEvent() : ForEver
 EndProcedure
 
@@ -131,21 +126,11 @@ Procedure ImageSelect()
   If FileName
     Zoom = 0
     ImageSelect = LoadImage(#PB_Any, FileName)
-    ImageEdit = CopyImage(ImageSelect, #PB_Any)
     IconeUpdate()   
     SetGadgetText(#FileName, FileName)
+    DisableGadget(#IconePreview, #False)
     DisableGadget(#IconeSave, #False)
   EndIf 
-EndProcedure
-
-Procedure ImageZoom()
-  Select EventGadget()
-    Case #ZoomIn  : Zoom + 1
-    Case #ZoomOut : Zoom - 1       
-  EndSelect
-  ImageEdit = CopyImage(ImageSelect, #PB_Any)
-  ResizeImage(ImageEdit, ImageWidth(ImageEdit) + Zoom, ImageHeight(ImageEdit) + Zoom, #PB_Image_Smooth)
-  IconeUpdate()
 EndProcedure
 
 Procedure IconeCreate()  
@@ -164,45 +149,76 @@ Procedure IconeCreate()
     Case #Size256 : Size = 256  
   EndSelect
   
-  CanvasGadget(#Icone, 55, 195, Size, Size)
+  CanvasGadget(#Icone, 25, 195, Size, Size)
   IconeUpdate()  
 EndProcedure
 
 Procedure IconeUpdate()
-  If ImageEdit
+  Protected x, y
+  Protected Width = GadgetWidth(#Icone)
+  Protected Height = GadgetHeight(#icone)
+  Protected n.b
+  
+  If ImageSelect
     StartDrawing(CanvasOutput(#Icone))
-    DrawingMode(#PB_2DDrawing_AllChannels)
-    Box(0, 0, GadgetWidth(#Icone), GadgetHeight(#Icone), RGBA(255, 255, 255, 0))
-    DrawingMode(#PB_2DDrawing_AlphaBlend)
     
+    ;Transparent background
+    Box(0, 0, Width, Height, RGBA(255, 255, 255, 255))
+    For x = 0 To Width Step 8
+      n!1
+      For y = 0 To Height Step 16
+        If n 
+          Box(x, y, 8, 8, RGBA(204, 204, 204, 255))
+        Else
+          Box(x, y + 8 , 8, 8, RGBA(204, 204, 204, 255))
+        EndIf           
+      Next
+    Next
+    
+    ;Image
+    If IsImage(ImageEdit)
+      FreeImage(ImageEdit)
+    EndIf
+    ImageEdit = CopyImage(ImageSelect, #PB_Any)
+    ResizeImage(ImageEdit, Width, Height)
+    
+    DrawingMode(#PB_2DDrawing_AlphaBlend)
     DrawImage(ImageID(ImageEdit), (GadgetWidth(#Icone) - ImageWidth(ImageEdit))/2, (GadgetHeight(#Icone) - ImageHeight(ImageEdit))/2)
+    
     StopDrawing()
+    
+    ;Icone Image
+    ImageIcone  = CreateImage(#PB_Any, Width, Height, 32, #PB_Image_Transparent )
+    StartDrawing(ImageOutput(ImageIcone))
+    DrawingMode(#PB_2DDrawing_AllChannels)
+    Box(0, 0, GadgetWidth(#Icone), GadgetHeight(#Icone), RGBA(255, 255, 255 , 0))
+    DrawingMode(#PB_2DDrawing_AlphaBlend)
+    DrawImage(ImageID(ImageSelect), 0, 0, Width, Height)
+    StopDrawing()
+    
   EndIf
 EndProcedure
 
-Procedure IconeSave()
-  Protected ImgId  = GetGadgetAttribute(#Icone, #PB_Canvas_Image)
-  Protected Width  = GadgetWidth(#Icone)
-  Protected Height = GadgetHeight(#Icone)
-  Protected Image = CreateImage(#PB_Any, Width, Height)
-  
-  Protected ImageFolder.s = GetPathPart(FileName)
-  Protected ImageName.s = StringField(GetFilePart(FileName), 1, ".") + ".ico"
-  
-  StartDrawing(ImageOutput(Image))
-  DrawingMode(#PB_2DDrawing_AllChannels)
-  Box(0, 0, GadgetWidth(#Icone), GadgetHeight(#Icone), RGBA(255, 255, 255, 0))
-  DrawingMode(#PB_2DDrawing_AlphaBlend)
-  DrawImage(ImgId, 0, 0, Width, Height)
-  StopDrawing()
-  
-  IconeHandle = PngToIco(Image) 
+Procedure IconePreview()
+  IconeHandle = ImageToIco(ImageIcone)
   SetWindowIcon(#MainForm, IconeHandle)
-  SaveIcon(IconeHandle, ImageFolder + ImageName )
-  Notify(#MainForm, "Information", "Icone sauvegardée : " + ImageName + #CRLF$, #NIM_MODIFY)
+  If Not GetGadgetData(#IconePreview)
+    SetGadgetData(#IconePreview, #True)
+    Notify(#MainForm, "Information", "l'icone est générée dans le coin haut gauche de cette application.", #NIM_MODIFY)
+  EndIf
 EndProcedure
 
-Procedure Exit()
+Procedure IconeSave()  
+  Protected ImageFolder.s = GetPathPart(FileName)
+  Protected ImageName.s = StringField(GetFilePart(FileName), 1, ".") + ".ico"
+    
+  IconeHandle = ImageToIco(ImageIcone) 
+  SaveIcon(IconeHandle, ImageFolder + ImageName )
+  Notify(#MainForm, "Information", "Icone sauvegardée : " + ImageName, #NIM_MODIFY)
+EndProcedure
+
+Procedure Exit()  
+  ;Delete icone if exist
   If IconeHandle
     DestroyIcon_(IconeHandle)
   EndIf
@@ -213,20 +229,17 @@ EndProcedure
 DataSection
   ImageSelect:
   IncludeBinary "image\imageselect.png"
+  
+  IconePreview: 
+  IncludeBinary "image\preview.png"
     
   IconeSave: 
   IncludeBinary "image\iconesave.png"
-  
-  IconeZoomIn:
-  IncludeBinary "image\zoom-in.png"
-  
-  IconeZoomOut:
-  IncludeBinary "image\zoom-Out.png"
-    
+      
 EndDataSection
 ; IDE Options = PureBasic 5.42 LTS (Windows - x86)
-; CursorPosition = 183
-; FirstLine = 170
+; CursorPosition = 198
+; FirstLine = 167
 ; Folding = --
 ; EnableUnicode
 ; EnableXP
