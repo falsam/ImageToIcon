@@ -6,4 +6,4 @@ Codé en avec le langage PureBasic, ImageToIcon transforme une image en icone.
 - Définir la taille de l'icone.
 - Sauvegarder l'icone dans le même dossier que l'image d'origine.
 
-![](ImageToIcon.jpg)
+![](ImageToIcon.jpg) 
