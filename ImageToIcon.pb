@@ -1,4 +1,4 @@
-﻿EnableExplicit
+EnableExplicit
 
 IncludePath "assets"
 
@@ -64,16 +64,16 @@ Procedure Start()
   
   ;-Toolbar
   Image = CatchImage(#PB_Any, ?ImageSelect)
-  ButtonImageGadgetNoSkin(#ImageOpen, 10, 20, 32, 32, ImageID(Image))
+  ButtonImageGadget(#ImageOpen, 10, 20, 32, 32, ImageID(Image))
   GadgetToolTip(#ImageOpen, "Load image (PNG or JPEG)")
   
   Image = CatchImage(#PB_Any, ?IconePreview)
-  ButtonImageGadgetNoSkin(#IconePreview, 50, 20, 32, 32, ImageID(Image))
+  ButtonImageGadget(#IconePreview, 50, 20, 32, 32, ImageID(Image))
   GadgetToolTip(#IconePreview, "View the result in the title of this window.")  
   DisableGadget(#IconePreview, #True)
   
   Image = CatchImage(#PB_Any, ?IconeSave)
-  ButtonImageGadgetNoSkin(#IconeSave, 90, 20, 32, 32, ImageID(Image))
+  ButtonImageGadget(#IconeSave, 90, 20, 32, 32, ImageID(Image))
   GadgetToolTip(#IconeSave, "Create icone (ICO)")  
   DisableGadget(#IconeSave, #True)
   
@@ -243,11 +243,3 @@ DataSection
   IncludeBinary "image\iconesave.png"
       
 EndDataSection
-; IDE Options = PureBasic 5.42 LTS (Windows - x86)
-; CursorPosition = 62
-; FirstLine = 18
-; Folding = --
-; EnableUnicode
-; EnableXP
-; UseIcon = assets\image\icone.ico
-; Executable = C:\Users\Eric\Desktop\ImageToIcon.exe
